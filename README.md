@@ -38,19 +38,19 @@
 ### 제공되는 API :
 
 ##### 1. 로그인 API: 
-* 로그인   POST   /v1/login
+> * 로그인   POST   /v1/login
 
 ##### 2. 사용자 API: 
-* 사용자 조회  GET       /v1/user
-* 사용자 생성  POST    /v1/user
-* 사용자 삭제  DELETE /v1/user/{id}
-* 사용자 조회  GET      /v1/user/{id}
-* 사용자 수정  PATCH /v1/user/{id}
-* 사용자 변경  PUT     /v1/user/{id}
+> * 사용자 조회  GET       /v1/user
+> * 사용자 생성  POST    /v1/user
+> * 사용자 삭제  DELETE /v1/user/{id}
+> * 사용자 조회  GET      /v1/user/{id}
+> * 사용자 수정  PATCH /v1/user/{id}
+> * 사용자 변경  PUT     /v1/user/{id}
 
 ##### 3. 검색 API: 
-* 장소 검색  GET   /v1/search/place/{vendor}
-* 인기 검색어 목록(TOP10)    GET   /v1/search/vest-keyword/{vendor}
+> * 장소 검색  GET   /v1/search/place/{vendor}
+> * 인기 검색어 목록(TOP10)    GET   /v1/search/vest-keyword/{vendor}
 
 
 ### 기동 후 swagger 를 통해 명세서 확인, 기능 테스트를 할 수 있습니다.
