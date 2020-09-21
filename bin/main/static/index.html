@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>장소 검색 서비스</title>
+    <style type="text/css">
+        #resultDiv ul { list-style: none; margin:0; padding:0; width:1200px;}
+        #floatReset { clear: both; height: 0; overflow: hidden; }
+        #resultDiv li { display:inline-block; float:left; border: 1px solid #ccc; border-radius: 10px; margin:4px; padding:4px; width:340;}
+    </style>
+    <script type="text/javascript" src="/docs/js/jquery-3.2.1.min.js" ></script>
+    <script type="text/javascript">
+	//-------------------------------------------------------------------
+	// 유틸
+	//-------------------------------------------------------------------
+	var SHUtil = {};
+	SHUtil.isNull = function(obj){
+	    if(null == obj || '' == obj || 'undefined' == typeof(obj))
+	        return true;
+	    return false;
+	};
+	SHUtil.getFormJson = function(formObj){
+	    var o = {};
+	    var a = formObj.serializeArray();
+	    $.each(a, function() {
+	        if (null!=o[this.name] && 'undefined'!=o[this.name]) {
+	            if (!o[this.name].push) {
+	                o[this.name] = [o[this.name]];
+	            }
+	            o[this.name].push(this.value || '');
+	        } else {
+	            o[this.name] = this.value || '';
+	        }
+	    });
+	    return o;
+	}
+
+    var token = null;
+
+    $(document).ready(function(){
+    	$("#loginBtn").click(function(){
+    		$.ajax({
+	            url: "http://localhost:8080/v1/login",
+	            async: true, // false 일 경우 동기 요청으로 변경
+	            type: 'POST',
+	            data: JSON.stringify(SHUtil.getFormJson($("#loginForm"))),
+// 	            dataType: 'json', // xml, json, script, html
+	            contentType: 'application/json',
+	            error: function(jqXHR) {
+	            	alert('로그인을 실패하였습니다.');
+	                console.log('error',jqXHR);
+	            }, // 요청 실패.
+	            success: function(resultObj) {
+	            	if(resultObj.success && 0 == resultObj.code){
+	            		token = resultObj.data;
+	                    alert('로그인 되었습니다.');
+	                    $("#login").toggle();
+	                    $("#searchDiv").toggle();
+	               }
+	            }
+            });
+    	});
+
+        $("#next").click(function(){
+            $("#page").val( parseInt($("#page").val())+1);
+            search();
+        });
+        
+    	$("#searchBtn").click(function(){
+    		$("#page").val("1");
+            $("#resultDiv ul").empty();
+            $("#lastDiv").hide();
+            search();
+    	});
+    	
+    });
+    function search(){ 
+        $.ajax({
+            url: "http://localhost:8080/v1/search/place/"+$("#vendor").val(),
+            async: true, // false 일 경우 동기 요청으로 변경
+            type: 'GET',
+            data: $("#searchForm").serialize(),
+//          dataType: 'json', // xml, json, script, html
+            contentType: 'application/json',
+            beforeSend : function(xhr){
+                xhr.setRequestHeader("X-AUTH-TOKEN", token);
+            },
+            error: function(jqXHR) {
+                alert('검색을 실패하였습니다.');
+            }, // 요청 실패.
+            success: function(resultObj) {
+                if(resultObj.success && 0 == resultObj.code){
+                	console.log("page:"+resultObj.data.page+"/"+$("#page").val())
+                    /*
+                    block_size: 15
+                    data: Array(0)
+                    length: 0
+                    __proto__: Array(0)
+                    is_first: true
+                    is_last: true
+                    page: 1
+                    total_count: 0
+                    */
+                    $("#current b").html(""+(resultObj.data.page * resultObj.data.block_size));
+                    $("#total b").html(""+resultObj.data.total_count);
+                    var ulObj = $("#resultDiv ul");
+                    if(0 < resultObj.data.total_count){
+                        var dataList = resultObj.data.data;
+                        for(var idx =0; idx < dataList.length; idx++){
+                            ulObj.append("<li>"
+                                    +"<label>"+dataList[idx].place_name
+                                    +    "<span>"
+                                    +        "<br/>＠:"+ dataList[idx].road_address_name
+                                    +        "<br/>☎:"+ dataList[idx].phone
+                                    +        "<br/><a href='"+ dataList[idx].place_map_link+"' target='_blank'>지도보기</a>"
+                                    +    "</span>"
+                                    +"</label></li>");
+                        }
+                        if(resultObj.data.is_last){ $("#lastDiv").hide(); }
+                        else{
+                            $("#lastDiv").show();
+                        }
+                    } else {
+                        ulObj.append("<li>요청하신 검색어의 결과가 없습니다.</li>");
+                    }
+               }else {
+                   alert('검색을 실패하였습니다.');
+               }
+            }
+        });
+    }
+    </script>
+</head>
+<body>
+<div id="wrap">
+    <div id="login">
+        <form name="loginForm" id="loginForm">
+            <label>ID <input type="text" name="userId" /></label>
+            <label>Password <input type="password" name="password" /></label>
+            <button id="loginBtn" type="button">login</button>
+        </form>
+    </div>
+    <div id="searchDiv" style="display:none;">
+        <form name="searchForm" id="searchForm">
+        <input type="hidden" name="page" id="page" value="1" />
+        <h3>장소 검색</h3>
+        <label>장소<input type="text" id="query" name="query" /></label>
+        <label>결과 수
+            <select name="block_size">
+                <option value="15" selected="selected">15</option>
+                <option value="14">14</option>
+                <option value="13">13</option>
+                <option value="12">12</option>
+                <option value="11">11</option>
+                <option value="10">10</option>
+                <option value="9">9</option>
+                <option value="8">8</option>
+                <option value="7">7</option>
+                <option value="6">6</option>
+                <option value="5">5</option>
+                <option value="4">4</option>
+                <option value="3">3</option>
+                <option value="2">2</option>
+                <option value="1">1</option>
+            </select>
+        </label>
+        <label>검색엔진
+            <select name="vendor" id="vendor">
+                <option value="kakao" selected="selected">kakao</option>
+            </select>
+        </label>
+        <button id="searchBtn" type="button">검색</button>
+        <div id="resultDiv">
+            <ul>
+                <li></li>
+            </ul>
+            <p id="floatReset"></p>
+        </div>
+        </form>
+    </div>
+    <div id="lastDiv" style="witdh:100%; display: none; ">
+        <label id="current"><b></b></label> / <label id="total"><b></b></label><button type="button" id="next" style="">다음</button>
+    </div>
+</div>
+</body>
+</html>
