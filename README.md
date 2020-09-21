@@ -57,6 +57,9 @@
 > http://localhost:8080/swagger-ui.html
 
 
+### 기동 후 테스트웹 을 통해 기능 테스트를 할 수 있습니다.
+> http://localhost:8080/index.html
+
 
 * * *
 
